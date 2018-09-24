@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Combat Connect 4</title>
+	<style>
+		.board {
+			width: 480px;
+			height: 480px;
+			display: flex;
+			flex-direction: column;
+			border: 5px solid #efefef;
+		}
+		.row {
+			display: flex;
+		}
+		.col {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 80px;
+			height: 80px;
+		}
+		.row:nth-child(even) .col:nth-child(even) {
+			background: #efefef;
+		}
+		.row:nth-child(odd) .col:nth-child(odd) {
+			background: #efefef;
+		}
+		.col.p1 {
+			background: #811820 !important;
+			color: #ffffff;
+		}
+		.col.p2 {
+			background: #241A5C !important;
+			color: #ffffff;
+		}
+		.col.winner {
+			background: #D5D14D !important;
+		}
+	</style>
+</head>
+<body>
+	<script type="text/javascript">
+		class _Game {
+			constructor() {
+				this.turn = 1;
+				this.grid = [
+					[1,2,3,4,5,6],
+					[7,8,9,10,11,12],
+					[13,14,15,16,17,18],
+					[19,20,21,22,23,24],
+					[25,26,27,28,29,30],
+					[31,32,33,34,35,36]
+				]
+				this.init();
+			}
+
+			init() {
+				this.createBoard();
+				this.addEventLister();
+			}
+
+			getTurn() {
+				return this.turn;
+			}
+
+			setTurn(value) {
+				this.turn = value;
+			}
+
+			getGrid() {
+				return this.grid;
+			}
+
+			getGridCell(row, col) {
+				return this.hasGridCell(row, col) ? this.getGrid()[row][col] : null;
+			}
+
+			hasGridCell(row, col) {
+				return this.getGrid()[row] && this.getGrid()[row][col];
+			}
+
+			getGridCellRow(cell) {
+				return this.getGrid().find(row => row.includes(cell)) || null;
+			}
+
+			getGridRowIndex(row) {
+				return this.getGrid().indexOf(row);
+			}
+
+			getGridRowCellIndex(cell) {
+				return this.getGridCellRow(cell).indexOf(cell);
+			}
+
+			getConnectingCells(row, col) {
+				const cells = [];
+				/// UUU
+				cells.push({
+					type: 'U',
+					cells: [
+						this.getGridCell(row, col),
+						this.getGridCell(row-1, col),
+						this.getGridCell(row-2, col),
+						this.getGridCell(row-3, col),
+						this.getGridCell(row+1, col),
+						this.getGridCell(row+2, col),
+						this.getGridCell(row+3, col),
+					].filter(cell => cell),
+				});
+				/// DDD
+				cells.push({
+					type: 'D',
+					cells: [
+						this.getGridCell(row, col),
+						this.getGridCell(row+1, col),
+						this.getGridCell(row+2, col),
+						this.getGridCell(row+3, col),
+						this.getGridCell(row-1, col),
+						this.getGridCell(row-2, col),
+						this.getGridCell(row-3, col),
+					].filter(cell => cell),
+				});
+				/// RRR
+				cells.push({
+					type: 'R',
+					cells: [
+						this.getGridCell(row, col),
+						this.getGridCell(row, col+1),
+						this.getGridCell(row, col+2),
+						this.getGridCell(row, col+3),
+						this.getGridCell(row, col-1),
+						this.getGridCell(row, col-2),
+						this.getGridCell(row, col-3),
+					].filter(cell => cell),
+				});
+				/// LLL
+				cells.push({
+					type: 'L',
+					cells: [
+						this.getGridCell(row, col),
+						this.getGridCell(row, col-1),
+						this.getGridCell(row, col-2),
+						this.getGridCell(row, col-3),
+						this.getGridCell(row, col+1),
+						this.getGridCell(row, col+2),
+						this.getGridCell(row, col+3),
+					].filter(cell => cell),
+				});
+				/// URR
+				if (this.hasGridCell(row-1, col+2)) {
+					cells.push({
+						type: 'URR',
+						cells: [
+							this.getGridCell(row, col),
+							this.getGridCell(row-1, col),
+							this.getGridCell(row-1, col+1),
+							this.getGridCell(row-1, col+2),
+						].filter(cell => cell),
+					});
+				}
+				/// ULL
+				if (this.hasGridCell(row-1, col-2)) {
+					cells.push({
+						type: 'ULL',
+						cells: [
+							this.getGridCell(row, col),
+							this.getGridCell(row-1, col),
+							this.getGridCell(row-1, col-1),
+							this.getGridCell(row-1, col-2),
+						].filter(cell => cell),
+					});
+				}
+				/// UUR
+				if (this.hasGridCell(row-2, col+1)) {
+					cells.push({
+						type: 'UUR',
+						cells: [
+							this.getGridCell(row, col),
+							this.getGridCell(row-1, col),
+							this.getGridCell(row-2, col),
+							this.getGridCell(row-2, col+1),
+						].filter(cell => cell),
+					});
+				}
+				/// UUL
+				if (this.hasGridCell(row-2, col-1)) {
+					cells.push({
+						type: 'UUL',
+						cells: [
+							this.getGridCell(row, col),
+							this.getGridCell(row-1, col),
+							this.getGridCell(row-2, col),
+							this.getGridCell(row-2, col-1),
+						].filter(cell => cell),
+					});
+				}
+				/// DRR
+				if (this.hasGridCell(row+1, col+2)) {
+					cells.push({
+						type: 'DRR',
+						cells: [
+							this.getGridCell(row, col),
+							this.getGridCell(row+1, col),
+							this.getGridCell(row+1, col+1),
+							this.getGridCell(row+1, col+2),
+						].filter(cell => cell),
+					});
+				}
+				/// DLL
+				if (this.hasGridCell(row-1, col-2)) {
+					cells.push({
+						type: 'DLL',
+						cells: [
+							this.getGridCell(row, col),
+							this.getGridCell(row+1, col),
+							this.getGridCell(row+1, col-1),
+							this.getGridCell(row+1, col-2),
+						].filter(cell => cell),
+					});
+				}
+				/// DDR
+				if (this.hasGridCell(row-2, col+1)) {
+					cells.push({
+						type: 'DDR',
+						cells: [
+							this.getGridCell(row, col),
+							this.getGridCell(row+1, col),
+							this.getGridCell(row+2, col),
+							this.getGridCell(row+2, col+1),
+						].filter(cell => cell),
+					});
+				}
+				/// DDL
+				if (this.hasGridCell(row-2, col-1)) {
+					cells.push({
+						type: 'DDL',
+						cells: [
+							this.getGridCell(row, col),
+							this.getGridCell(row+1, col),
+							this.getGridCell(row+2, col),
+							this.getGridCell(row+2, col-1),
+						].filter(cell => cell),
+					});
+				}
+
+				return cells.filter(cell => cell.cells.length >= 4);
+			}
+
+			getCellElement(cell) {
+				return document.querySelector(`.col[data-cell="${cell}"]`);
+			}
+
+			getRowCellElement(col) {
+				return document.querySelector(`.col[data-row="${this.getGridRowIndex(this.getGridCellRow(col))}"][data-col="${this.getGridRowCellIndex(col)}"]`);
+			}
+
+			playTurn(data) {
+				this.getCellElement(data.cell).classList.add(`p${this.getTurn()}`);
+				this.checkIfWon(data);
+				this.setTurn(this.getTurn() === 1 ? 2 : 1);
+			}
+
+			checkIfWon(data) {
+				const row = Number(data.row);
+				const col = Number(data.col);
+				const cells = this.getConnectingCells(row, col);
+				const elements = cells.map(cell => cell.cells).map(item => item.map(i => this.getRowCellElement(i)));
+				const won = elements.find(a => a.filter(element => element.classList.contains(`p${this.getTurn()}`)).length >= 4) || null;
+				if (won) {
+					won.filter(e => e.classList.contains(`p${this.getTurn()}`)).forEach(e => e.classList.add('winner'));
+					setTimeout(() => {
+						alert(`Player ${this.getTurn()} Won`);						
+					}, 500);
+				}
+			}
+
+			createBoard() {
+				const board = document.createElement('div');
+				board.classList.add('board');
+				this.getGrid().forEach((r, rI) => {
+					const row = document.createElement('div');
+					row.classList.add('row');
+					row.dataset.value = r;
+					r.forEach((c, cI) => {
+						const col = document.createElement('div');
+						col.classList.add('col');
+						col.dataset.cell = c;
+						col.dataset.col = cI;
+						col.dataset.row = rI;
+						col.innerHTML = this.padZero(c, 2);
+						row.appendChild(col);
+					});
+					board.appendChild(row);
+				});
+				document.body.appendChild(board);
+			}
+
+			padZero(value, length) {
+				return (Array.from(Array(length)).map(() => '0').join('') + value).slice(-length);
+			}
+			addEventLister() {
+				document.querySelectorAll('.col').forEach(cell => cell.addEventListener('click', (event) => {
+					this.playTurn(event.currentTarget.dataset);
+				}));
+			}
+		}
+		const Game = new _Game();
+	</script>
+</body>
+</html>
